@@ -1,13 +1,15 @@
-from flask import Blueprint
-from flask_restful import Api
-from resources.Hello import Hello
-from Category import CategoryResource
-from Comment import CommentResource
+from flask import Flask
 
-api_bp = Blueprint('api', __name__)
-api = Api(api_bp)
+app = Flask(__name__)
 
-# Route
-api.add_resource(Hello, '/Hello')
-api.add_resource(CategoryResource, '/Category')
-api.add_resource(CommentResource, '/Comment')
+
+@app.route('/')
+def hello_world():
+    return 'Hello World!'
+
+@app.route('/hellow')
+def hello_world_two():
+    return 'Hello World two!'
+
+if __name__ == '__main__':
+    app.run()
