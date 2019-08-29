@@ -33,6 +33,26 @@ class UserSchema(ma.Schema):
 user_schema = UserSchema()
 users_schema = UserSchema(many=True)
 
+class InvalidUsage(Exception):
+    status_code = 400
+
+    def __init__(self, message, status_code=None, payload=None):
+        Exception.__init__(self)
+        self.message = message
+        if status_code is not None:
+            self.status_code = status_code
+        self.payload = payload
+
+    def to_dict(self):
+        rv = dict(self.payload or ())
+        rv['message'] = self.message
+        return rv
+
+@app.errorhandler(InvalidUsage)
+def handle_invalid_usage(error):
+    response = jsonify(error.to_dict())
+    response.status_code = error.status_code
+    return response
 
 #Endpoint to create a user
 
@@ -46,14 +66,17 @@ def add_user():
         db.session.commit()
         # print(new_user)
         syncresp = user_schema.dump(new_user)
+        return jsonify(syncresp)
     except:
-        syncresp = {"error":"Duplicateid "}
+        raise InvalidUsage('Duplicate message id ', status_code=400)
+        #syncresp = {"error":"Duplicateid "}
 
 
-    return jsonify(syncresp)
+
     #return jsonify(new_user)
 
 #get all the users
+
 
 @app.route("/user",methods=["GET"])
 def get_user():
@@ -86,5 +109,6 @@ def user_delete(id):
     db.session.delete(user)
     db.session.commit()
     return user_schema.jsonify(user)
+
 if __name__ == '__main__':
     app.run(debug=True)
